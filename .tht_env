@@ -1,0 +1,54 @@
+#!/bin/bash
+module load adf 2023.104-intelmpi-intel
+# .tht_env: Automated environment configuration
+
+# Function: Modify a file using sed
+forcefield() {
+  # Store the input filename into a local variable
+  local filename="$1"
+  # Check if the filename is provided and if the file exists
+  if [[ -z "$filename" || ! -f "$filename" ]]; then
+    echo "Please provide a valid file path!"
+    return 1
+  fi
+  
+  # Use sed to modify lines based on specific patterns
+  sed -i '{
+    # Match lines starting with 'O' (ignoring leading spaces) and append specified attributes
+    /^\s*O/s/$/ForceField.Type=OW ForceField.Charge=-0.843/
+    # Match lines starting with 'H' (ignoring leading spaces) and append specified attributes
+    /^\s*H/s/$/ForceField.Type=HW ForceField.Charge=0.417/
+  }' "$filename"
+
+  # Inform the user that the file has been modified
+  echo "File modified: $filename"
+}
+
+sub_ams() {
+cat << END_OF_CAT > sub_ams_$1.slurm
+#!/bin/bash
+
+#SBATCH --job-name $1
+#SBATCH --output %x.out
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --partition ctest
+#SBATCH --no-requeue
+#SBATCH --account ACD114004
+
+module purge
+module load adf 2023.104-intelmpi-intel
+
+runfile=\${SLURM_JOB_NAME}.run
+export SCM_TMPDIR=/scratch/\$USER
+mkdir -p \$SCM_TMPDIR
+chmod +x \$runfile
+
+./\$runfile
+
+mv ams.results/ \${SLURM_JOB_NAME}.results/
+END_OF_CAT
+  echo "SLURM script created: sub_ams_$1.slurm"
+}
+
