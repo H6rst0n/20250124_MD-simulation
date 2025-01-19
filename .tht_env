@@ -1,6 +1,8 @@
 #!/bin/bash
 module load adf 2023.104-intelmpi-intel
 # .tht_env: Automated environment configuration
+alias ams='amsjobs'
+alias qq='squeue -u $USER'
 
 # Function: Modify a file using sed
 forcefield() {
