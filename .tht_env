@@ -47,8 +47,9 @@ export SCM_TMPDIR=/scratch/\$USER
 mkdir -p \$SCM_TMPDIR
 chmod +x \$runfile
 
-./\$runfile
 
+./\$runfile
+rm -rf \${SLURM_JOB_NAME}.results/
 mv ams.results/ \${SLURM_JOB_NAME}.results/
 END_OF_CAT
   echo "SLURM script created: sub_ams_$1.slurm"
